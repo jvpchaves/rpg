@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-T">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Light Novel IA com D20</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #202020;
+            color: #e0e0e0;
+            overscroll-behavior: none; 
+        }
+        .pixel-border {
+            border-style: solid;
+            border-width: 4px;
+            border-image-slice: 2;
+            border-image-width: 2;
+            border-image-repeat: stretch;
+            border-image-source: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" fill="%23e0e0e0"><path d="M0,0 H8 M0,7 H8 M0,0 V7 M7,0 V7 M1,1 H7 M1,6 H7 M1,1 V6 M6,1 V6 M2,2 H6 M2,5 H6 M2,2 V5 M5,2 V5 M3,3 H5 M3,4 H5 M3,3 V4 M4,3 V4 "/></svg>');
+            border-image-outset: 2;
+            padding: 1rem;
+            background-color: #303030;
+        }
+        .pixel-button {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #505050;
+            color: #e0e0e0;
+            border-style: solid;
+            border-width: 4px;
+            border-image-slice: 2;
+            border-image-width: 2;
+            border-image-repeat: stretch;
+            border-image-source: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" fill="%23e0e0e0"><path d="M0,0 H8 M0,7 H8 M0,0 V7 M7,0 V7 M1,1 H7 M1,6 H7 M1,1 V6 M6,1 V6 M2,2 H6 M2,5 H6 M2,2 V5 M5,2 V5 M3,3 H5 M3,4 H5 M3,3 V4 M4,3 V4 "/></svg>');
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            text-shadow: 2px 2px #202020;
+        }
+        .pixel-button:hover {
+            background-color: #606060;
+        }
+        .pixel-button:active {
+            background-color: #404040;
+            transform: translate(2px, 2px);
+            text-shadow: none;
+        }
+        .pixel-button:disabled {
+            background-color: #3a3a3a;
+            color: #707070;
+            cursor: not-allowed;
+            border-image-source: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" fill="%23707070"><path d="M0,0 H8 M0,7 H8 M0,0 V7 M7,0 V7 M1,1 H7 M1,6 H7 M1,1 V6 M6,1 V6 M2,2 H6 M2,5 H6 M2,2 V5 M5,2 V5 M3,3 H5 M3,4 H5 M3,3 V4 M4,3 V4 "/></svg>');
+        }
+        .pixel-input { 
+            font-family: 'Press Start 2P', cursive;
+            background-color: #404040;
+            color: #e0e0e0;
+            border: 2px solid #e0e0e0;
+            padding: 0.5rem;
+            outline: none;
+            font-size: 0.8rem; 
+        }
+        .pixel-input:focus {
+            border-color: #f0f0f0;
+        }
+        .pixel-input:disabled { /* Estilo para quando estiver desabilitado */
+            background-color: #333333;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        #storyDisplay {
+            font-family: 'Inter', sans-serif; 
+            white-space: pre-wrap; 
+            max-height: 50vh; 
+            overflow-y: auto;
+            line-height: 1.8;
+            font-size: 1rem; 
+        }
+        .character-info img {
+            border: 4px solid #707070;
+            image-rendering: pixelated; 
+        }
+        .scene-image img {
+            border: 4px solid #707070;
+            image-rendering: pixelated;
+            max-width: 100%;
+            height: auto;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #505050;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #303030;
+            border-left: 2px solid #202020;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #707070;
+            border: 2px solid #505050;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #808080;
+        }
+        .modal {
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            font-family: 'Inter', sans-serif; 
+            background-color: #303030;
+            margin: auto;
+            padding: 20px;
+            border: 4px solid #e0e0e0;
+            width: 80%;
+            max-width: 500px;
+            border-image-slice: 2;
+            border-image-width: 2;
+            border-image-repeat: stretch;
+            border-image-source: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" fill="%23e0e0e0"><path d="M0,0 H8 M0,7 H8 M0,0 V7 M7,0 V7 M1,1 H7 M1,6 H7 M1,1 V6 M6,1 V6 M2,2 H6 M2,5 H6 M2,2 V5 M5,2 V5 M3,3 H5 M3,4 H5 M3,3 V4 M4,3 V4 "/></svg>');
+            border-image-outset: 2;
+            color: #e0e0e0;
+            text-align: left;
+            line-height: 1.7; 
+            font-size: 0.95rem; 
+        }
+        .modal-content h3 {
+            font-family: 'Press Start 2P', cursive; 
+            font-size: 1.1rem; 
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .modal-content p {
+             white-space: pre-wrap;
+        }
+        #storyDisplay p {
+            font-size: 1rem; 
+        }
+        #storyDisplay p.text-sky-300 { 
+             font-weight: bold; 
+        }
+        #storyDisplay p.text-yellow-400 { 
+            font-style: italic;
+        }
+        #d20Area { /* Mantido para o display do resultado */
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        #d20ResultDisplay {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            min-height: 2em; 
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="gameContainer" class="w-full max-w-4xl pixel-border rounded-lg shadow-2xl">
+        <header class="text-center p-4 border-b-4 border-gray-600">
+            <h1 class="text-3xl md:text-4xl">RPG Light Novel IA</h1>
+            <p id="userIdDisplay" class="text-xs mt-2"></p>
+        </header>
+
+        <main class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+                <div id="storyDisplay" class="h-auto min-h-[200px] bg-gray-800 p-4 rounded-md mb-2 text-sm md:text-base">
+                    Autenticando e carregando...
+                </div>
+                <button id="loreButton" class="pixel-button w-full mb-2 hidden">✨ Desvendar Mistérios</button>
+                
+                <div id="interactionArea" class="mt-2"> 
+                    <div id="classSelection" class="flex flex-col sm:flex-row gap-2 justify-center">
+                        </div>
+                    <div id="playerInputArea" class="hidden mt-2">
+                        <div id="d20Area">
+                            <div id="d20ResultDisplay" class="mt-1">O resultado do D20 aparecerá aqui após sua ação.</div>
+                        </div>
+                        <textarea id="playerAction" class="pixel-input w-full h-20 p-2 rounded-md mb-2" placeholder="O que você faz?"></textarea>
+                        <button id="inspirationButton" class="pixel-button w-full mb-2">✨ Buscar Inspiração</button>
+                        <button id="submitAction" class="pixel-button w-full">Enviar Ação</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="md:col-span-1 space-y-4">
+                <div class="character-info pixel-border bg-gray-700 p-4 rounded-md text-center">
+                    <h2 class="text-lg mb-2">Personagem</h2>
+                    <div id="characterPortraitLoader" class="loader hidden"></div>
+                    <img id="characterPortrait" src="https://placehold.co/128x128/303030/e0e0e0?text=Retrato" alt="Retrato do Personagem" class="mx-auto mb-2 w-32 h-32 object-cover rounded">
+                    <p id="characterClassDisplay" class="text-sm">Classe: N/A</p>
+                </div>
+                <div class="scene-image pixel-border bg-gray-700 p-4 rounded-md text-center">
+                    <h2 class="text-lg mb-2">Cenário</h2>
+                    <div id="sceneImageLoader" class="loader hidden"></div>
+                    <img id="sceneImage" src="https://placehold.co/256x192/303030/e0e0e0?text=Cena" alt="Imagem do Cenário" class="mx-auto mb-2 rounded">
+                </div>
+                 <button id="resetGameButton" class="pixel-button mt-4 w-full bg-red-700 hover:bg-red-600">Reiniciar Jogo</button>
+            </aside>
+        </main>
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-50 hidden">
+            <div class="loader"></div>
+            <p class="mt-4 text-xl">Processando sua aventura...</p>
+        </div>
+
+        <div id="aiInfoModal" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="modalTitle">Informação da IA</h3>
+                <p id="modalText" class="my-4">Detalhes aqui...</p>
+                <button id="closeModalButton" class="pixel-button mt-4 w-full">Ok</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lightnovel-rpg-ia-local';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('debug'); 
+
+        let userId = null;
+        let gameState = {
+            playerClass: null,
+            storyHistory: [],
+            characterPortraitPrompt: "", 
+            sceneImagePrompt: "",       
+            isInitialized: false,
+            currentStorySegment: ""
+        };
+        let gameDocRef = null;
+        let isAuthReady = false; 
+        let hasAttemptedLoad = false; 
+
+        const storyDisplay = document.getElementById('storyDisplay');
+        const classSelectionDiv = document.getElementById('classSelection');
+        const playerInputArea = document.getElementById('playerInputArea');
+        const playerActionTextarea = document.getElementById('playerAction');
+        const submitActionButton = document.getElementById('submitAction');
+        const characterPortraitImg = document.getElementById('characterPortrait');
+        const sceneImageImg = document.getElementById('sceneImage');
+        const characterClassDisplay = document.getElementById('characterClassDisplay');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const characterPortraitLoader = document.getElementById('characterPortraitLoader');
+        const sceneImageLoader = document.getElementById('sceneImageLoader');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const resetGameButton = document.getElementById('resetGameButton');
+
+        const loreButton = document.getElementById('loreButton');
+        const inspirationButton = document.getElementById('inspirationButton');
+        const aiInfoModal = document.getElementById('aiInfoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const closeModalButton = document.getElementById('closeModalButton');
+
+        const d20ResultDisplay = document.getElementById('d20ResultDisplay');
+
+        // IMPORTANTE: GEMINI_API_KEY é deixada como string vazia.
+        // O ambiente Canvas DEVE injetar uma chave válida em tempo de execução.
+        // Se as chamadas de API falharem com 401 (Não Autorizado),
+        // verifique se o ambiente Canvas está fornecendo uma chave válida
+        // com as permissões necessárias para os modelos Gemini e Imagen.
+        const GEMINI_API_KEY = ""; 
+        const GEMINI_TEXT_MODEL = "gemini-2.0-flash";
+        const IMAGEN_IMAGE_MODEL = "imagen-3.0-generate-002";
+
+        const classes = [
+            { id: "guerreiro", name: "Guerreiro Valente", promptDesc: "um forte guerreiro de armadura completa, segurando uma espada, estilo pixel art 16-bit" },
+            { id: "mago", name: "Mago Astuto", promptDesc: "um mago sábio com vestes e um cajado brilhante, estilo pixel art 16-bit" },
+            { id: "ladino", name: "Ladino Sombrio", promptDesc: "um ladino ágil em vestes escuras com adagas, capuz cobrindo o rosto, estilo pixel art 16-bit" }
+        ];
+
+        onAuthStateChanged(auth, async (user) => {
+            console.log("onAuthStateChanged disparado. User:", user);
+            isAuthReady = true; 
+            if (user) {
+                userId = user.uid;
+                console.log("Usuário autenticado:", userId);
+                userIdDisplay.textContent = `ID do Jogador: ${userId}`;
+                gameDocRef = doc(db, "artifacts", appId, "users", userId, "lightNovelRpgUserGameData", "currentSave");
+                console.log("Caminho do Documento Firestore:", gameDocRef.path);
+                
+                if (!hasAttemptedLoad) {
+                    hasAttemptedLoad = true;
+                    console.log("Tentando carregar o jogo pela primeira vez após auth.");
+                    await loadGame();
+                }
+            } else {
+                userId = null; 
+                gameDocRef = null;
+                hasAttemptedLoad = false; 
+                console.log("Nenhum usuário autenticado.");
+                updateUI(); 
+            }
+        });
+
+        async function initializeFirebase() {
+            try {
+                await setPersistence(auth, browserLocalPersistence); 
+                console.log("Persistência configurada.");
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    console.log("Tentando login com token customizado.");
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    console.log("Nenhum usuário atual, tentando login anônimo.");
+                    await signInAnonymously(auth);
+                } else {
+                     console.log("Usuário já persistido:", auth.currentUser.uid);
+                     if (isAuthReady && !hasAttemptedLoad && auth.currentUser.uid) {
+                        userId = auth.currentUser.uid;
+                        gameDocRef = doc(db, "artifacts", appId, "users", userId, "lightNovelRpgUserGameData", "currentSave");
+                        console.log("Usuário persistido, auth pronta, carregando jogo de initializeFirebase.");
+                        hasAttemptedLoad = true;
+                        await loadGame();
+                     } else if (!isAuthReady) {
+                        console.log("Usuário persistido, mas aguardando onAuthStateChanged para carregar o jogo.");
+                     }
+                }
+            } catch (error) {
+                console.error("Erro na inicialização do Firebase Auth:", error);
+                storyDisplay.textContent = "Erro crítico de autenticação. Verifique o console.";
+                isAuthReady = true; 
+                updateUI(); 
+            }
+        }
+        
+        initializeFirebase();
+
+        function getD20Interpretation(roll) {
+            if (roll === 1) return "Desastre Crítico!";
+            if (roll <= 5) return "Muito Azar...";
+            if (roll <= 10) return "Azar.";
+            if (roll <= 15) return "Sorte.";
+            if (roll <= 19) return "Muita Sorte!";
+            if (roll === 20) return "Sucesso Crítico!";
+            return "Resultado Neutro.";
+        }
+        
+        async function callGeminiAPI(prompt, forFeature = false) { 
+            if (!isAuthReady) {
+                console.warn("Chamada à API Gemini tentada antes da autenticação estar pronta.");
+                openModal("Aguarde", "A conexão com os oráculos ainda está sendo estabelecida. Tente novamente em alguns instantes.");
+                return "Aguardando autenticação...";
+            }
+            let loadingMessage = forFeature ? "Consultando os oráculos..." : "Gerando reviravoltas na história...";
+            showLoading(true, loadingMessage);
+            
+            console.log("callGeminiAPI: GEMINI_API_KEY value before fetch:", `'${GEMINI_API_KEY}'`); // Log para depurar chave
+            if (GEMINI_API_KEY === "" && !window.location.href.includes("localhost")) { 
+                 console.warn("GEMINI_API_KEY está vazia. A chamada para a API Gemini pode falhar se não for injetada pelo ambiente.");
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TEXT_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+            
+            let chatHistory = [];
+            if (!forFeature && gameState.storyHistory.length > 0) {
+                const recentHistory = gameState.storyHistory.slice(-3).map(entry => `${entry.speaker}: ${entry.text}`).join("\n");
+                chatHistory.push({ role: "user", parts: [{ text: `Contexto anterior:\n${recentHistory}` }] });
+                chatHistory.push({ role: "model", parts: [{ text: "Entendido. Próximo passo." }] });
+            }
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error(`Erro na API Gemini: ${response.status}`, errorBody); 
+                    throw new Error(`Erro na API Gemini: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Resposta inesperada da API Gemini:", result);
+                    return "A IA parece estar sem palavras no momento. Tente novamente.";
+                }
+            } catch (error) {
+                console.error("Erro ao chamar API Gemini:", error);
+                return `Ocorreu um erro ao contatar o Oráculo. Verifique o console para detalhes.`;
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function callImagenAPI(prompt, imageElementId, loaderElementId) {
+            if (!isAuthReady) {
+                console.warn("Chamada à API Imagen tentada antes da autenticação estar pronta.");
+                return null;
+            }
+            const loader = document.getElementById(loaderElementId);
+            const imageElement = document.getElementById(imageElementId);
+            
+            loader.classList.remove('hidden');
+            imageElement.src = `https://placehold.co/${imageElementId === 'characterPortrait' ? '128x128' : '256x192'}/303030/e0e0e0?text=Gerando...`;
+            
+            // Log explícito do valor da chave API no momento da chamada
+            console.log("callImagenAPI: GEMINI_API_KEY value at the time of fetch call:", `'${GEMINI_API_KEY}'`); 
+            
+            if (GEMINI_API_KEY === "" && !window.location.href.includes("localhost")) {
+                 console.warn("GEMINI_API_KEY está vazia. A chamada para a API Imagen pode falhar se não for injetada pelo ambiente Canvas ou se a chave injetada for inválida/sem permissão.");
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_IMAGE_MODEL}:predict?key=${GEMINI_API_KEY}`;
+            const payload = { instances: [{ prompt: prompt }], parameters: { "sampleCount": 1 } };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error(`Erro na API Imagen: ${response.status}`, errorBody); 
+                    throw new Error(`Erro na API Imagen: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    imageElement.src = imageUrl; 
+                    return imageUrl; 
+                } else {
+                    console.error("Resposta inesperada da API Imagen:", result);
+                    imageElement.src = `https://placehold.co/${imageElementId === 'characterPortrait' ? '128x128' : '256x192'}/303030/e0e0e0?text=Falha!`;
+                    return null;
+                }
+            } catch (error) {
+                console.error("Erro ao chamar API Imagen:", error);
+                imageElement.src = `https://placehold.co/${imageElementId === 'characterPortrait' ? '128x128' : '256x192'}/303030/e0e0e0?text=Erro!`;
+                return null;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function displayStoryText(text, speaker = "narrador") {
+            gameState.storyHistory.push({ speaker, text, timestamp: new Date().toISOString() });
+            if (speaker !== 'jogador' && speaker !== 'sistema') { 
+                gameState.currentStorySegment = text; 
+                if(isAuthReady && userId) loreButton.classList.remove('hidden'); 
+            }
+            
+            storyDisplay.innerHTML = ""; 
+            gameState.storyHistory.forEach(entry => {
+                const p = document.createElement('p');
+                p.classList.add('mb-2');
+                if (entry.speaker === 'jogador') {
+                    p.classList.add('text-sky-300');
+                    p.textContent = `Você: ${entry.text}`;
+                } else if (entry.speaker === 'sistema') {
+                    p.classList.add('text-yellow-400', 'italic'); 
+                     p.textContent = entry.text;
+                }
+                else {
+                    p.classList.add('text-gray-300');
+                    p.textContent = entry.text;
+                }
+                storyDisplay.appendChild(p);
+            });
+            storyDisplay.scrollTop = storyDisplay.scrollHeight; 
+        }
+        
+        function updateUI() {
+            console.log("Atualizando UI. Auth pronta:", isAuthReady, "UserID:", userId);
+            if (isAuthReady && userId && gameState.playerClass) {
+                characterClassDisplay.textContent = `Classe: ${classes.find(c => c.id === gameState.playerClass)?.name || gameState.playerClass}`;
+                classSelectionDiv.classList.add('hidden');
+                playerInputArea.classList.remove('hidden');
+                inspirationButton.classList.remove('hidden'); 
+                if (gameState.currentStorySegment) loreButton.classList.remove('hidden');
+                playerActionTextarea.disabled = false; 
+                submitActionButton.disabled = false; 
+
+            } else if (isAuthReady && userId && !gameState.playerClass) { 
+                characterClassDisplay.textContent = "Classe: N/A";
+                classSelectionDiv.classList.remove('hidden');
+                playerInputArea.classList.add('hidden');
+                inspirationButton.classList.add('hidden');
+                loreButton.classList.add('hidden');
+                d20ResultDisplay.textContent = "O resultado do D20 aparecerá aqui após sua ação.";
+                d20ResultDisplay.className = 'mt-1 text-gray-400';
+                populateClassSelection();
+            }
+             else { 
+                characterClassDisplay.textContent = "Classe: N/A";
+                classSelectionDiv.classList.add('hidden'); 
+                playerInputArea.classList.add('hidden');
+                inspirationButton.classList.add('hidden');
+                loreButton.classList.add('hidden');
+                if (!isAuthReady) {
+                    storyDisplay.textContent = "Autenticando e conectando aos reinos místicos...";
+                } else {
+                     storyDisplay.textContent = "Erro de conexão. Verifique o console e tente recarregar.";
+                }
+            }
+
+            if (gameState.storyHistory.length > 0) {
+                storyDisplay.innerHTML = ""; 
+                 gameState.storyHistory.forEach(entry => {
+                    const p = document.createElement('p');
+                    p.classList.add('mb-2');
+                     if (entry.speaker === 'jogador') {
+                        p.classList.add('text-sky-300');
+                        p.textContent = `Você: ${entry.text}`;
+                    } else if (entry.speaker === 'sistema') {
+                        p.classList.add('text-yellow-400', 'italic');
+                         p.textContent = entry.text;
+                    }
+                    else {
+                        p.classList.add('text-gray-300');
+                        p.textContent = entry.text;
+                    }
+                    storyDisplay.appendChild(p);
+                });
+                storyDisplay.scrollTop = storyDisplay.scrollHeight;
+            } else if (isAuthReady && userId && !gameState.playerClass && gameState.storyHistory.length === 0 && gameState.isInitialized === false) {
+                storyDisplay.textContent = "Carregando sua aventura inicial...";
+            }
+        }
+
+        function populateClassSelection() {
+            classSelectionDiv.innerHTML = ""; 
+            classes.forEach(cls => {
+                const button = document.createElement('button');
+                button.textContent = cls.name;
+                button.classList.add('pixel-button', 'flex-1');
+                button.onclick = () => selectClass(cls.id, cls.promptDesc);
+                classSelectionDiv.appendChild(button);
+            });
+        }
+
+        async function selectClass(classId, portraitPrompt) {
+            if (!isAuthReady || !userId) {
+                 openModal("Erro de Conexão", "Não foi possível definir a classe. Verifique sua conexão e tente novamente.");
+                 return;
+            }
+            showLoading(true, "Forjando seu destino como " + classes.find(c => c.id === classId).name + "...");
+            gameState.playerClass = classId;
+            gameState.characterPortraitPrompt = portraitPrompt; 
+            displayStoryText(`Você escolheu ser um ${classes.find(c => c.id === classId).name}.`, "sistema");
+            
+            await callImagenAPI(portraitPrompt, 'characterPortrait', 'characterPortraitLoader'); 
+
+            const storyPrompt = `O jogador escolheu a classe '${classes.find(c => c.id === classId).name}'.
+Inicie a história de Aethelgard para este novo ${classes.find(c => c.id === classId).name}.
+Descreva o primeiro desafio ou mistério que o jogador encontra.
+A narrativa deve ser CONCISA (2-3 frases).
+Termine com uma situação que exija uma decisão ou ação do jogador.`;
+            
+            const continuacaoStory = await callGeminiAPI(storyPrompt);
+            displayStoryText(continuacaoStory);
+            gameState.isInitialized = true;
+            d20ResultDisplay.textContent = "O resultado do D20 aparecerá aqui após sua ação."; 
+            d20ResultDisplay.className = 'mt-1 text-gray-400'; 
+            updateUI();
+            await saveGame();
+            showLoading(false);
+        }
+
+        async function handlePlayerAction() {
+             if (!isAuthReady || !userId) {
+                 openModal("Erro de Conexão", "Não foi possível enviar sua ação. Verifique sua conexão e tente novamente.");
+                 return;
+            }
+            const action = playerActionTextarea.value.trim();
+            if (!action) {
+                openModal("Ação Necessária", "Por favor, descreva sua ação antes de enviar.");
+                return;
+            }
+
+            playerActionTextarea.disabled = true; 
+            submitActionButton.disabled = true; 
+            showLoading(true, "Avaliando suas ações e o destino...");
+
+            const d20Roll = Math.floor(Math.random() * 20) + 1;
+            const d20InterpretationText = getD20Interpretation(d20Roll);
+            
+            d20ResultDisplay.textContent = `Você rolou ${d20Roll}! (${d20InterpretationText})`;
+            if (d20Roll === 1) d20ResultDisplay.className = 'mt-1 text-red-500 font-bold';
+            else if (d20Roll <= 5) d20ResultDisplay.className = 'mt-1 text-red-400';
+            else if (d20Roll <= 10) d20ResultDisplay.className = 'mt-1 text-yellow-400';
+            else if (d20Roll <= 15) d20ResultDisplay.className = 'mt-1 text-lime-400';
+            else if (d20Roll <= 19) d20ResultDisplay.className = 'mt-1 text-green-400';
+            else if (d20Roll === 20) d20ResultDisplay.className = 'mt-1 text-green-500 font-bold';
+            else d20ResultDisplay.className = 'mt-1 text-gray-400';
+
+
+            displayStoryText(action, "jogador"); 
+            displayStoryText(`Rolagem D20: ${d20Roll} (${d20InterpretationText})`, "sistema");
+
+            const context = gameState.storyHistory.slice(-6).map(entry => `${entry.speaker === "jogador" ? "Jogador" : (entry.speaker === "sistema" ? "Sistema" : "Narrador")}: ${entry.text}`).join("\n");
+
+            const prompt = `Contexto da História Atual:\n${context}\n
+O jogador, um ${classes.find(c => c.id === gameState.playerClass)?.name || gameState.playerClass}, realizou a ação: "${action}".
+O resultado da rolagem automática do D20 para esta ação foi ${d20Roll} (${d20InterpretationText}).
+
+Você é o mestre de jogo. Continue a narrativa de forma CONCISA (2-4 frases).
+Descreva o resultado da ação do jogador, levando em consideração crucialmente o resultado do D20 (1 é desastre crítico, 20 é sucesso crítico, valores intermediários modulam o sucesso/falha).
+Apresente um novo desenvolvimento ou consequência.
+Termine com uma situação que exija uma decisão ou nova ação do jogador.`;
+            
+            playerActionTextarea.value = ""; 
+            const storyResult = await callGeminiAPI(prompt);
+            displayStoryText(storyResult); 
+
+            playerActionTextarea.disabled = false; 
+            submitActionButton.disabled = false; 
+            updateUI(); 
+            await saveGame();
+            showLoading(false);
+        }
+
+        async function startInitialStory() {
+            if (!isAuthReady || !userId) {
+                console.warn("Tentativa de iniciar história sem autenticação pronta ou userId.");
+                storyDisplay.textContent = "Aguardando conexão para iniciar a aventura...";
+                return;
+            }
+            console.log("Iniciando nova história...");
+            showLoading(true, "Tecendo o início de sua lenda...");
+            await resetGameStateVars(); 
+
+            const initialPrompt = `Você é um mestre de jogo de RPG. Crie uma introdução CONCISA (2-3 frases) para uma aventura de fantasia estilo light novel no mundo de Aethelgard. O jogador está em uma encruzilhada. Apresente as opções de classe: '${classes[0].name}', '${classes[1].name}', ou '${classes[2].name}'. Peça para escolher uma.`;
+
+            const introStory = await callGeminiAPI(initialPrompt, false); 
+            displayStoryText(introStory);
+            
+            const scenePrompt = "Uma paisagem de fantasia épica com montanhas distantes, uma floresta misteriosa e um céu dramático, estilo pixel art 16-bit.";
+            gameState.sceneImagePrompt = scenePrompt; 
+            await callImagenAPI(scenePrompt, 'sceneImage', 'sceneImageLoader'); 
+            
+            gameState.isInitialized = true; 
+            d20ResultDisplay.textContent = "O resultado do D20 aparecerá aqui após sua ação.";
+            d20ResultDisplay.className = 'mt-1 text-gray-400';
+            updateUI();
+            await saveGame(); 
+            showLoading(false);
+        }
+
+        function showLoading(show, message = "Carregando...") {
+            if (show) {
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.querySelector('p').textContent = message;
+            } else {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        async function saveGame() {
+            if (!gameDocRef || !userId) { 
+                console.warn("Tentativa de salvar jogo sem referência de documento ou userId.");
+                return;
+            }
+            try {
+                const historyToSave = gameState.storyHistory.slice(-50);
+                const dataToSave = {
+                    playerClass: gameState.playerClass,
+                    storyHistory: historyToSave,
+                    characterPortraitPrompt: gameState.characterPortraitPrompt,
+                    sceneImagePrompt: gameState.sceneImagePrompt,
+                    isInitialized: gameState.isInitialized,
+                    currentStorySegment: gameState.currentStorySegment, 
+                    updatedAt: serverTimestamp()
+                };
+                await setDoc(gameDocRef, dataToSave);
+                console.log("Jogo salvo com prompts!");
+            } catch (error) {
+                console.error("Erro ao salvar jogo:", error);
+            }
+        }
+
+        async function loadGame() {
+            if (!isAuthReady || !userId || !gameDocRef) {
+                 console.warn("Tentativa de carregar jogo sem auth pronta, userId ou gameDocRef.", "isAuthReady:", isAuthReady, "userId:", userId, "gameDocRef:", gameDocRef);
+                 storyDisplay.textContent = "Aguardando conexão para carregar o progresso...";
+                return;
+            }
+            console.log("Carregando jogo...");
+            showLoading(true, "Carregando sua aventura...");
+            try {
+                const docSnap = await getDoc(gameDocRef);
+                if (docSnap.exists()) {
+                    const loadedData = docSnap.data();
+                    gameState = { ...gameState, ...loadedData }; 
+                    console.log("Jogo carregado do Firestore:", gameState);
+
+                    if (gameState.characterPortraitPrompt) {
+                        characterPortraitImg.src = `https://placehold.co/128x128/303030/e0e0e0?text=Carregando...`;
+                        await callImagenAPI(gameState.characterPortraitPrompt, 'characterPortrait', 'characterPortraitLoader');
+                    } else {
+                         characterPortraitImg.src = 'https://placehold.co/128x128/303030/e0e0e0?text=Retrato';
+                    }
+                    if (gameState.sceneImagePrompt) {
+                        sceneImageImg.src = `https://placehold.co/256x192/303030/e0e0e0?text=Carregando...`;
+                        await callImagenAPI(gameState.sceneImagePrompt, 'sceneImage', 'sceneImageLoader');
+                    } else {
+                         sceneImageImg.src = 'https://placehold.co/256x192/303030/e0e0e0?text=Cena';
+                    }
+
+                    if (!gameState.playerClass) { 
+                        console.log("Jogo carregado sem classe definida, iniciando fluxo de nova história/seleção.");
+                        await startInitialStory(); 
+                    } else {
+                        gameState.isInitialized = true; 
+                        d20ResultDisplay.textContent = "O resultado do D20 aparecerá aqui após sua ação.";
+                        d20ResultDisplay.className = 'mt-1 text-gray-400';
+                        updateUI(); 
+                    }
+                } else {
+                    console.log("Nenhum jogo salvo encontrado, iniciando novo jogo.");
+                    await startInitialStory();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar jogo:", error);
+                storyDisplay.textContent = "Erro ao carregar seu progresso. Iniciando uma nova aventura.";
+                await resetGameStateVars(); 
+                await startInitialStory(); 
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function resetGameStateVars() {
+            gameState.playerClass = null;
+            gameState.storyHistory = [];
+            gameState.characterPortraitPrompt = ""; 
+            gameState.sceneImagePrompt = "";       
+            gameState.isInitialized = false;
+            gameState.currentStorySegment = "";
+        }
+
+        async function resetGame() {
+            console.log("Reiniciando o jogo...");
+            if (!isAuthReady || !userId) {
+                openModal("Erro de Conexão", "Não é possível reiniciar o jogo sem conexão. Tente novamente.");
+                return;
+            }
+            showLoading(true, "Reiniciando sua aventura...");
+            hasAttemptedLoad = false; 
+            
+            if (gameDocRef) { 
+                try {
+                    await deleteDoc(gameDocRef); 
+                    console.log("Save anterior deletado.");
+                } catch (error) {
+                    console.error("Erro ao deletar save:", error);
+                }
+            }
+            
+            characterPortraitImg.src = "https://placehold.co/128x128/303030/e0e0e0?text=Retrato"; 
+            sceneImageImg.src = "https://placehold.co/256x192/303030/e0e0e0?text=Cena";
+            storyDisplay.textContent = "Carregando nova aventura..."; 
+            
+            await startInitialStory(); 
+        }
+        
+        function openModal(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            aiInfoModal.classList.remove('hidden');
+        }
+
+        closeModalButton.addEventListener('click', () => {
+            aiInfoModal.classList.add('hidden');
+        });
+
+        async function getLoreDetails() {
+            if (!isAuthReady || !userId) {
+                 openModal("Erro de Conexão", "Recurso indisponível sem conexão. Tente novamente."); return;
+            }
+            if (!gameState.currentStorySegment) {
+                openModal("Sem Mistérios Próximos", "Ainda não há um evento recente na história para detalhar. Avance um pouco mais!");
+                return;
+            }
+            const prompt = `O último segmento da história narrado pela IA foi: "${gameState.currentStorySegment}".
+Você é um Sábio Guardião de Tomos Antigos. Elabore sobre um elemento misterioso, intrigante ou um nome próprio (local, pessoa, objeto, criatura, evento) mencionado neste segmento.
+Forneça 2-3 frases CONCISAS de 'lore' ou detalhes adicionais sobre esse elemento específico.
+Mantenha o estilo de fantasia light novel e seja criativo.
+Se o segmento for muito genérico ou não contiver elementos claros para elaborar, diga algo como "Os tomos são silenciosos sobre detalhes mais profundos deste momento específico."`;
+            const lore = await callGeminiAPI(prompt, true); 
+            openModal("Segredos Desvendados ✨", lore);
+        }
+
+        async function getCreativeActions() {
+            if (!isAuthReady || !userId) {
+                openModal("Erro de Conexão", "Recurso indisponível sem conexão. Tente novamente."); return;
+            }
+            if (!gameState.playerClass || gameState.storyHistory.length === 0) {
+                openModal("Inspiração Distante", "Escolha uma classe e comece sua aventura para buscar inspiração!");
+                return;
+            }
+            const currentSituation = gameState.currentStorySegment || gameState.storyHistory.slice(-1)[0]?.text || "O jogador está ponderando seu próximo passo.";
+            const playerClassName = classes.find(c => c.id === gameState.playerClass)?.name || "Aventureiro";
+
+            const prompt = `O jogador, um ${playerClassName}, está na seguinte situação: "${currentSituation}".
+Você é um Oráculo da Estratégia. Sugira 2 ou 3 ações criativas, CONCISAS, temáticas e interessantes que o jogador poderia tomar a seguir, considerando sua classe e a situação atual.
+Apresente as sugestões como uma lista numerada (ex: 1. Fazer X\n2. Tentar Y).`;
+            const suggestions = await callGeminiAPI(prompt, true); 
+            openModal("Sussurros do Destino ✨", suggestions);
+        }
+
+        loreButton.addEventListener('click', getLoreDetails);
+        inspirationButton.addEventListener('click', getCreativeActions);
+
+
+        resetGameButton.addEventListener('click', () => {
+            console.log("Botão Reiniciar Jogo clicado.");
+            resetGame(); 
+        });
+
+        submitActionButton.addEventListener('click', handlePlayerAction);
+        playerActionTextarea.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) { 
+                event.preventDefault(); 
+                handlePlayerAction();
+            }
+        });
+        
+        storyDisplay.textContent = "Conectando aos reinos místicos...";
+        updateUI(); 
+
+    </script>
+</body>
+</html>
